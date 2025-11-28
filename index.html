@@ -274,7 +274,7 @@
       </p>
     </div>
     <div class="status-bar">
-      <div class="location-pill">📍 臺北市</div>
+      <div class="location-pill">📍 我在哪呢…？</div>
       <div id="updateTime" class="update-pill">更新中...</div>
     </div>
 
@@ -289,53 +289,58 @@
       let userCity = "臺北市"; // 預設城市
       console.log("使用者城市1：", userCity);
 
+      // Step 1: 取得座標
+      function getCoordinates() {
+        return new Promise((resolve) => {
+          if (!navigator.geolocation) {
+            alert("瀏覽器不支援定位");
+            return resolve(null);
+          }
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              resolve({
+                lat: position.coords.latitude,
+                lon: position.coords.longitude,
+              });
+            },
+            (error) => {
+              console.error("定位失敗", error);
+              resolve(null);
+            },
+            { timeout: 10000, maximumAge: 0 }
+          );
+        });
+      }
+
+      // Step 2: 用座標呼叫 OpenStreetMap API
       function getCityFromOpenstreetmapAPI(lat, lon) {
-        fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=zh-TW`
-        )
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=zh-TW`;
+        return fetch(url)
           .then((response) => response.json())
           .then((data) => {
-            console.log(data);
             const address = data.address;
-            const city =
-              address.city || address.town || address.county || address.state;
-            return city;
+            return (
+              address.city || address.town || address.county || address.state
+            );
           })
           .catch((err) => {
-            console.error(err);
+            console.error("API 錯誤：", err);
             return null;
           });
       }
 
-      function getLocationCity() {
-        if (!navigator.geolocation) {
-          alert("瀏覽器不支援定位");
-          return;
+      // Step 3: 整合流程
+      const pillEl = document.querySelector(".location-pill");
+      getCoordinates().then((coords) => {
+        if (coords) {
+          getCityFromOpenstreetmapAPI(coords.lat, coords.lon).then((city) => {
+            const userCity = city || "臺北市"; // 預設城市
+            pillEl.textContent = "📍 " + userCity;
+          });
+        } else {
+          pillEl.textContent = "📍 臺北市";
         }
-
-        navigator.geolocation.getCurrentPosition(
-          function (position) {
-            // 呼叫其他函式
-            return getCityFromOpenstreetmapAPI(
-              position.coords.latitude,
-              position.coords.longitude
-            );
-          },
-          function (error) {
-            console.error("定位失敗", error);
-            return;
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0,
-          }
-        );
-      }
-
-      userCity = getLocationCity() || userCity;
-      console.log("使用者城市2：", userCity);
-      document.querySelector(".location-pill").textContent = "📍 " + userCity;
+      });
 
       const API_URL = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_36hr/${userCity}`;
 
