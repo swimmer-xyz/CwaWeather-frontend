@@ -79,6 +79,128 @@
         box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
       }
 
+      .location-pill.disabled {
+        pointer-events: none; /* 禁止點擊 */
+        opacity: 0.5; /* 顯示灰色，表示不可用 */
+      }
+
+      /* hover 效果：顏色加深 */
+      .location-pill:hover {
+        background: #e0c763; /* 顏色比原本深一點 */
+        cursor: pointer;
+      }
+
+      /* 下拉選單遮罩（Backdrop） */
+      .city-dropdown-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.18);
+        display: none;
+        z-index: 200;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* 下拉選單容器（置中於 status-bar 底下） */
+      .city-dropdown {
+        position: absolute;
+        top: 68px; /* 預設貼近 status-bar 下方，可視情況微調 */
+        left: 0;
+        transform: none;
+        width: min(300px, calc(100% - 40px));
+        background: #fffef2;
+        border-radius: 16px;
+        border: 3px solid white;
+        padding: 12px;
+        box-shadow: 0 16px 30px rgba(0, 0, 0, 0.16);
+        z-index: 210;
+      }
+
+      /* 第一層：區域列（五個項目） */
+      .city-categories {
+        display: flex;
+        gap: 10px;
+        justify-content: space-between;
+        margin-bottom: 10px;
+      }
+
+      .city-category {
+        flex: 1;
+        text-align: center;
+        padding: 10px 8px;
+        border-radius: 10px;
+        font-weight: 900;
+        color: var(--ac-brown);
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid var(--ac-card-border);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .city-category:hover {
+        background: var(--ac-yellow);
+      }
+
+      /* 活動中的分類（顯示子選單） */
+      .city-category.active {
+        background: var(--ac-green);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.05);
+      }
+
+      /* 第二層：縣市清單（會隨分類切換） */
+      .city-submenus {
+        display: flex;
+        gap: 12px;
+        margin-top: 6px;
+      }
+
+      /* 每個分類的城市面板 */
+      .city-panel {
+        flex: 1;
+        min-height: 56px;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 10px;
+        padding: 10px;
+        border: 2px dashed var(--ac-card-border);
+        display: none; /* 預設隱藏，只顯示 active 的 panel */
+      }
+
+      .city-panel.active {
+        display: block;
+      }
+
+      /* 城市按鈕 */
+      .city-item {
+        display: inline-block;
+        margin: 6px 6px 0 0;
+        padding: 6px 10px;
+        border-radius: 10px;
+        background: white;
+        border: 2px solid var(--ac-card-border);
+        font-weight: 700;
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .city-item:hover {
+        background: var(--ac-yellow);
+      }
+
+      /* 小螢幕微調：把分類改成直列，城市面板置於下方 */
+      @media (max-width: 520px) {
+        .city-categories {
+          flex-direction: column;
+        }
+        .city-submenus {
+          flex-direction: column;
+        }
+        .city-dropdown {
+          top: 64px;
+          padding: 10px;
+        }
+      }
+
       .update-pill {
         font-size: 0.8rem;
         color: white;
@@ -274,7 +396,43 @@
       </p>
     </div>
     <div class="status-bar">
-      <div class="location-pill">📍 我在哪呢…？</div>
+      <div class="location-pill disabled">📍 我在哪呢…？</div>
+      <!-- 下拉選單遮罩 -->
+      <div id="cityDropdownBackdrop" class="city-dropdown-backdrop">
+        <div class="city-dropdown">
+          <div class="city-section-title">北部縣市</div>
+          <div class="city-item">臺北市</div>
+          <div class="city-item">新北市</div>
+          <div class="city-item">基隆市</div>
+          <div class="city-item">桃園市</div>
+          <div class="city-item">新竹市</div>
+          <div class="city-item">新竹縣</div>
+
+          <div class="city-section-title">中部縣市</div>
+          <div class="city-item">臺中市</div>
+          <div class="city-item">苗栗縣</div>
+          <div class="city-item">彰化縣</div>
+          <div class="city-item">雲林縣</div>
+          <div class="city-item">南投縣</div>
+
+          <div class="city-section-title">南部縣市</div>
+          <div class="city-item">高雄市</div>
+          <div class="city-item">臺南市</div>
+          <div class="city-item">嘉義市</div>
+          <div class="city-item">嘉義縣</div>
+          <div class="city-item">屏東縣</div>
+
+          <div class="city-section-title">東部縣市</div>
+          <div class="city-item">花蓮縣</div>
+          <div class="city-item">臺東縣</div>
+
+          <div class="city-section-title">離島</div>
+          <div class="city-item">澎湖縣</div>
+          <div class="city-item">金門縣</div>
+          <div class="city-item">連江縣</div>
+        </div>
+      </div>
+
       <div id="updateTime" class="update-pill">更新中...</div>
     </div>
 
@@ -287,7 +445,7 @@
 
     <script>
       let userCity = "臺北市"; // 預設城市
-      console.log("使用者城市1：", userCity);
+      let gpsCity = "";
 
       // Step 1: 取得座標
       function getCoordinates() {
@@ -334,15 +492,22 @@
       getCoordinates().then((coords) => {
         if (coords) {
           getCityFromOpenstreetmapAPI(coords.lat, coords.lon).then((city) => {
-            const userCity = city || "臺北市"; // 預設城市
-            pillEl.textContent = "📍 " + userCity;
+            if (city) {
+              userCity = city;
+              gpsCity = city;
+              pillEl.textContent = "📍 " + userCity; // 有回覆縣市名稱
+            } else {
+              pillEl.textContent = "    " + userCity; // 沒有回覆縣市名稱
+            }
+            pillEl.classList.remove("disabled");
           });
         } else {
-          pillEl.textContent = "📍 臺北市";
+          pillEl.textContent = "    " + userCity;
+          pillEl.classList.remove("disabled");
         }
       });
 
-      const API_URL = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_36hr/${userCity}`;
+      let API_URL = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_36hr/${userCity}`;
 
       function getWeatherIcon(weather) {
         if (!weather) return "🌤️";
@@ -406,7 +571,7 @@
                                 <div class="hero-temp">${avgTemp}°</div>
                             </div>
                             <div class="hero-desc">${current.weather}</div>
-                            
+
                             <div class="advice-grid">
                                 <div class="advice-item">
                                     <div class="advice-icon">${
@@ -508,6 +673,39 @@
       }
 
       document.addEventListener("DOMContentLoaded", fetchWeather);
+
+      // === Location-pill 點擊 → 打開下拉選單 ===
+      //const locationPill = document.querySelector(".location-pill");
+      const cityBackdrop = document.getElementById("cityDropdownBackdrop");
+
+      pillEl.addEventListener("click", () => {
+        cityBackdrop.style.display = "block";
+      });
+
+      // 點擊背景關閉選單
+      cityBackdrop.addEventListener("click", (e) => {
+        if (e.target === cityBackdrop) {
+          cityBackdrop.style.display = "none";
+        }
+      });
+
+      // === 點擊城市後更新文字 ===
+      document.querySelectorAll(".city-item").forEach((item) => {
+        item.addEventListener("click", () => {
+          userCity = item.textContent.trim();
+
+          if (gpsCity && userCity === gpsCity) {
+            pillEl.textContent = "📍 " + userCity;
+          } else {
+            pillEl.textContent = "    " + userCity;
+          }
+
+          // 關閉選單
+          cityBackdrop.style.display = "none";
+          API_URL = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_36hr/${userCity}`;
+          fetchWeather();
+        });
+      });
     </script>
   </body>
 </html>
