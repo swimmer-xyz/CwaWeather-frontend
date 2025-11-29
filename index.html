@@ -6,10 +6,10 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>森森天氣</title>
-    <link rel="icon" type="image/png" href="./icon-v2.png" />
-    <link rel="apple-touch-icon" href="./icon-v2.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="./icon-v2.png" />
+    <title>烏薩奇想出去玩</title>
+    <link rel="icon" href="usagi-icon.svg" />
+    <link rel="apple-touch-icon" href="usagi-icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="usagi-icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,16 +19,18 @@
 
     <style>
       :root {
-        --ac-green: #7de1a9;
-        --ac-bg-pattern: #8fd8af;
-        --ac-cream: #fffef2;
-        --ac-yellow: #f9f195;
-        --ac-brown: #796452;
-        --ac-blue: #4fb5d9;
-        --ac-dark: #58504a;
-        --ac-card-border: #e6e0c8;
+        --usa-pink: #ffb7d1;
+        --usa-pink-light: #ffe6ef;
+        --usa-white: #fff7fb;
+        --usa-brown: #7a5c54;
+        --usa-shadow: rgba(0, 0, 0, 0.08);
+        --usa-border: #ffffff;
+        --usa-yellow: #ffeab6;
+        --usa-blue: #c9e8ff;
+        --usa-card: #fffafc;
       }
 
+      /* Reset */
       * {
         margin: 0;
         padding: 0;
@@ -38,267 +40,230 @@
 
       body {
         font-family: "Zen Maru Gothic", sans-serif;
-        background-color: var(--ac-green);
-        /* 更細緻的斜紋背景 */
-        background-image: repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 20px,
-          rgba(255, 255, 255, 0.2) 20px,
-          rgba(255, 255, 255, 0.2) 40px
-        );
+
+        /* 官方系烏薩奇粉白背景 + 手繪點點 */
+        background-color: var(--usa-pink-light);
+        background-image: radial-gradient(
+            circle 6px at 8px 8px,
+            rgba(255, 255, 255, 0.9) 20%,
+            transparent 21%
+          ),
+          radial-gradient(
+            circle 6px at 28px 18px,
+            rgba(255, 255, 255, 0.8) 20%,
+            transparent 21%
+          ),
+          radial-gradient(
+            circle 6px at 18px 28px,
+            rgba(255, 255, 255, 0.7) 20%,
+            transparent 21%
+          ),
+          linear-gradient(90deg, #ffeef5 0%, #fff9fd 100%);
+        background-size: 40px 40px;
         min-height: 100vh;
-        color: var(--ac-dark);
-        /* 防止 iOS 左右滑動 */
+        color: var(--usa-brown);
         overflow-x: hidden;
         padding-bottom: 20px;
       }
 
-      /* 頂部狀態列 */
+      /* =============================
+      狀態列（烏薩奇貼紙風）
+============================= */
+
       .status-bar {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding: 15px 20px;
-        background: rgba(255, 255, 255, 0.3);
-        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.35);
+        backdrop-filter: blur(12px);
         position: sticky;
         top: 0;
         z-index: 100;
       }
 
+      /* 地點按鈕：貼紙風白邊圓圓 */
       .location-pill {
-        background: var(--ac-yellow);
-        color: var(--ac-brown);
-        padding: 5px 15px;
-        border-radius: 20px;
+        background: var(--usa-yellow);
+        color: var(--usa-brown);
+        padding: 6px 18px;
+        border-radius: 22px;
         font-weight: 900;
         font-size: 1.1rem;
         transform: rotate(-2deg);
-        border: 2px solid white;
-        box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.1);
+        border: 3px solid var(--usa-border);
+        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+        transition: 0.15s;
       }
 
-      .location-pill.disabled {
-        pointer-events: none; /* 禁止點擊 */
-        opacity: 0.5; /* 顯示灰色，表示不可用 */
-      }
-
-      /* hover 效果：顏色加深 */
       .location-pill:hover {
-        background: #e0c763; /* 顏色比原本深一點 */
+        background: #ffd77c;
         cursor: pointer;
       }
 
-      /* 下拉選單遮罩（Backdrop） */
+      .location-pill.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+
+      /* 更新時間 */
+      .update-pill {
+        font-size: 0.8rem;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.25);
+        padding: 4px 12px;
+        border-radius: 12px;
+      }
+
+      /* =============================
+       下拉城市選單
+============================= */
+
       .city-dropdown-backdrop {
         position: fixed;
         inset: 0;
         background: rgba(0, 0, 0, 0.18);
         display: none;
         z-index: 200;
-        -webkit-tap-highlight-color: transparent;
       }
 
-      /* 下拉選單容器（置中於 status-bar 底下） */
       .city-dropdown {
         position: absolute;
-        top: 68px; /* 預設貼近 status-bar 下方，可視情況微調 */
+        top: 68px;
         left: 0;
-        transform: none;
         width: min(300px, calc(100% - 40px));
-        background: #fffef2;
+        background: var(--usa-white);
         border-radius: 16px;
-        border: 3px solid white;
-        padding: 12px;
-        box-shadow: 0 16px 30px rgba(0, 0, 0, 0.16);
+        border: 3px solid var(--usa-border);
+        padding: 14px;
+        box-shadow: 0 16px 30px rgba(0, 0, 0, 0.15);
         z-index: 210;
       }
 
-      /* 第一層：區域列（五個項目） */
-      .city-categories {
-        display: flex;
-        gap: 10px;
-        justify-content: space-between;
-        margin-bottom: 10px;
-      }
-
-      .city-category {
-        flex: 1;
-        text-align: center;
-        padding: 10px 8px;
-        border-radius: 10px;
-        font-weight: 900;
-        color: var(--ac-brown);
-        background: rgba(255, 255, 255, 0.9);
-        border: 2px solid var(--ac-card-border);
-        cursor: pointer;
-        user-select: none;
-      }
-
-      .city-category:hover {
-        background: var(--ac-yellow);
-      }
-
-      /* 活動中的分類（顯示子選單） */
-      .city-category.active {
-        background: var(--ac-green);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.05);
-      }
-
-      /* 第二層：縣市清單（會隨分類切換） */
-      .city-submenus {
-        display: flex;
-        gap: 12px;
-        margin-top: 6px;
-      }
-
-      /* 每個分類的城市面板 */
-      .city-panel {
-        flex: 1;
-        min-height: 56px;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 10px;
-        padding: 10px;
-        border: 2px dashed var(--ac-card-border);
-        display: none; /* 預設隱藏，只顯示 active 的 panel */
-      }
-
-      .city-panel.active {
-        display: block;
-      }
-
-      /* 城市按鈕 */
+      /* 城市貼紙 */
       .city-item {
         display: inline-block;
         margin: 6px 6px 0 0;
-        padding: 6px 10px;
-        border-radius: 10px;
-        background: white;
-        border: 2px solid var(--ac-card-border);
+        padding: 6px 12px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 3px solid var(--usa-border);
         font-weight: 700;
+        color: var(--usa-brown);
         cursor: pointer;
-        user-select: none;
+        transition: 0.15s;
       }
 
       .city-item:hover {
-        background: var(--ac-yellow);
-      }
-
-      /* 小螢幕微調：把分類改成直列，城市面板置於下方 */
-      @media (max-width: 520px) {
-        .city-categories {
-          flex-direction: column;
-        }
-        .city-submenus {
-          flex-direction: column;
-        }
-        .city-dropdown {
-          top: 64px;
-          padding: 10px;
-        }
-      }
-
-      .update-pill {
-        font-size: 0.8rem;
+        background: var(--usa-pink);
         color: white;
-        background: rgba(0, 0, 0, 0.2);
-        padding: 4px 10px;
-        border-radius: 12px;
       }
+
+      /* =============================
+        主內容容器
+============================= */
 
       .container {
         padding: 20px;
         max-width: 600px;
-        /* 限制在大手機寬度 */
         margin: 0 auto;
       }
 
-      /* === 核心：今日焦點卡片 === */
+      /* =============================
+        今日焦點卡片
+============================= */
+
       .hero-card {
-        background: var(--ac-cream);
-        border-radius: 35px;
+        background: var(--usa-card);
+        border-radius: 32px;
         padding: 30px 25px;
         text-align: center;
-        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        border: 4px solid white;
-        margin-bottom: 25px;
+        border: 4px solid var(--usa-border);
+        box-shadow: 4px 4px 0 var(--usa-shadow);
         position: relative;
+        margin-bottom: 25px;
+      }
+      .hero-figure {
+        position: absolute;
+        right: -16px;
+        top: -12px;
+        width: 140px;
+        height: auto;
+        pointer-events: none;
+        transform: rotate(-6deg);
       }
 
-      /* 像動森的對話氣泡 */
+      /* 對話泡泡 */
       .hero-period {
         position: absolute;
         top: -15px;
         left: 50%;
         transform: translateX(-50%);
-        background: var(--ac-blue);
-        color: white;
+        background: var(--usa-blue);
+        color: var(--usa-brown);
         padding: 5px 20px;
-        border-radius: 20px;
+        border-radius: 18px;
+        border: 3px solid var(--usa-border);
+        box-shadow: 3px 3px 0 var(--usa-shadow);
         font-weight: bold;
-        border: 3px solid white;
-        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
       }
 
+      /* 天氣 icon + 溫度 */
       .hero-temp-container {
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 10px;
-        margin: 15px 0;
+        gap: 12px;
+        margin: 20px 0;
       }
 
       .hero-icon {
         font-size: 5rem;
-        filter: drop-shadow(0 4px 0 rgba(0, 0, 0, 0.1));
-        animation: bounce 3s infinite;
+        filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.2));
+        animation: usa-bounce 3s infinite;
       }
 
-      @keyframes bounce {
+      @keyframes usa-bounce {
         0%,
         100% {
           transform: translateY(0);
         }
-
         50% {
-          transform: translateY(-10px);
+          transform: translateY(-8px);
         }
       }
 
       .hero-temp {
-        font-size: 4.5rem;
+        font-size: 4.4rem;
         font-weight: 900;
-        color: var(--ac-brown);
-        line-height: 1;
+        color: var(--usa-brown);
       }
 
       .hero-desc {
-        font-size: 1.5rem;
-        color: #8a7b70;
-        margin-bottom: 20px;
+        font-size: 1.4rem;
+        color: #8a6d66;
         font-weight: bold;
+        margin-bottom: 18px;
       }
 
-      /* === 上班族最愛的：快速建議區 === */
+      /* =============================
+       建議區（兩格）
+============================= */
+
       .advice-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 15px;
-        margin-top: 20px;
         padding-top: 20px;
-        border-top: 2px dashed #e0d8c0;
+        border-top: 2px dashed #e4cbd8;
       }
 
       .advice-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.5);
-        padding: 10px;
-        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.7);
+        border-radius: 22px;
+        padding: 12px;
+        border: 3px solid var(--usa-border);
+        text-align: center;
       }
 
       .advice-icon {
@@ -307,21 +272,21 @@
       }
 
       .advice-text {
-        font-size: 1.4rem;
+        font-size: 1.3rem;
         font-weight: 900;
-        color: var(--ac-brown);
-        margin: 5px 0;
-        line-height: 1.2;
+        color: var(--usa-brown);
       }
 
-      /* === 稍後預報：橫向滑動區 === */
+      /* =============================
+       稍後預報
+============================= */
+
       .section-title {
         font-size: 1.2rem;
-        color: white;
-        margin-bottom: 15px;
-        margin-left: 10px;
         font-weight: 900;
-        text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.1);
+        color: var(--usa-brown);
+        margin-left: 10px;
+        margin-bottom: 15px;
       }
 
       .scroll-container {
@@ -329,7 +294,6 @@
         overflow-x: auto;
         gap: 15px;
         padding-bottom: 10px;
-        /* 隱藏滾動條但保留功能 */
         scrollbar-width: none;
         -ms-overflow-style: none;
       }
@@ -338,52 +302,48 @@
         display: none;
       }
 
+      /* 小卡片 */
       .mini-card {
         min-width: 140px;
-        background: rgba(255, 255, 255, 0.85);
-        border-radius: 25px;
-        padding: 20px 15px;
+        background: var(--usa-white);
+        border-radius: 24px;
+        padding: 18px 15px;
         text-align: center;
-        border: 3px solid white;
-        flex-shrink: 0;
-        /* 防止被擠壓 */
+        border: 3px solid var(--usa-border);
+        box-shadow: 3px 3px 0 var(--usa-shadow);
       }
 
       .mini-time {
-        background: var(--ac-green);
+        background: var(--usa-pink);
         color: white;
-        padding: 3px 10px;
+        padding: 3px 12px;
         border-radius: 10px;
         font-size: 0.8rem;
+        font-weight: bold;
         display: inline-block;
         margin-bottom: 10px;
-        font-weight: bold;
       }
 
       .mini-icon {
-        font-size: 2.5rem;
-        margin: 5px 0;
+        font-size: 2.4rem;
       }
 
       .mini-temp {
         font-size: 1.2rem;
         font-weight: 800;
-        color: var(--ac-dark);
+        color: var(--usa-brown);
       }
 
-      /* Loading 畫面 */
+      /* =============================
+       Loading 畫面
+============================= */
+
       .loading-screen {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: var(--ac-green);
+        background: var(--usa-pink-light);
         display: flex;
-        flex-direction: column;
         justify-content: center;
         align-items: center;
-        z-index: 999;
+        flex-direction: column;
       }
     </style>
   </head>
@@ -563,6 +523,7 @@
 
         document.getElementById("heroCard").innerHTML = `
                         <div class="hero-card">
+                          <img src="usa-hero-figure.svg" class="hero-figure" />
                             <div class="hero-period">${period}</div>
                             <div class="hero-temp-container">
                                 <div class="hero-icon">${getWeatherIcon(
