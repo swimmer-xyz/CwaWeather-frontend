@@ -67,8 +67,8 @@
       }
 
       /* =============================
-      狀態列（烏薩奇貼紙風）
-============================= */
+            狀態列（烏薩奇貼紙風）
+      ============================= */
 
       .status-bar {
         display: flex;
@@ -80,6 +80,12 @@
         position: sticky;
         top: 0;
         z-index: 100;
+      }
+
+      .location_info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
 
       /* 地點按鈕：貼紙風白邊圓圓 */
@@ -106,6 +112,21 @@
         pointer-events: none;
       }
 
+      .location-alert {
+        background: var(--usa-yellow);
+        color: var(--usa-brown);
+        border-radius: 12px;
+        font-weight: 900;
+        font-size: 0.9rem;
+        border: 3px solid red;
+        box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+        transition: 0.15s;
+      }
+      .location-alert:hover {
+        background: #ffd77c;
+        cursor: pointer;
+      }
+
       /* 更新時間 */
       .update-pill {
         font-size: 0.8rem;
@@ -116,8 +137,8 @@
       }
 
       /* =============================
-       下拉城市選單
-============================= */
+             下拉城市選單
+      ============================= */
 
       .city-dropdown-backdrop {
         position: fixed;
@@ -159,9 +180,38 @@
         color: white;
       }
 
+      .mini-card-alert {
+        min-width: 140px;
+        background: var(--usa-white);
+        border-radius: 24px;
+        padding: 18px 15px;
+        /* text-align: left; */
+        border: 3px solid var(--usa-border);
+        box-shadow: 3px 3px 0 var(--usa-shadow);
+      }
+
+      /* 彈窗背景 */
+      .alert-modal {
+        position: fixed;
+        top: 100px;
+        left: 50px;
+        width: 100%;
+        height: 100%;
+        /* background: rgba(0, 0, 0, 0.4); */
+        display: flex;
+        justify-content: left;
+        align-items: center;
+        z-index: 999;
+      }
+
+      /* 隱藏狀態 */
+      .hidden {
+        display: none;
+      }
+
       /* =============================
-        主內容容器
-============================= */
+              主內容容器
+      ============================= */
 
       .container {
         padding: 20px;
@@ -170,8 +220,8 @@
       }
 
       /* =============================
-        今日焦點卡片
-============================= */
+              今日焦點卡片
+      ============================= */
 
       .hero-card {
         background: var(--usa-card);
@@ -247,8 +297,8 @@
       }
 
       /* =============================
-       建議區（兩格）
-============================= */
+             建議區（兩格）
+      ============================= */
 
       .advice-grid {
         display: grid;
@@ -278,8 +328,8 @@
       }
 
       /* =============================
-       稍後預報
-============================= */
+             稍後預報
+      ============================= */
 
       .section-title {
         font-size: 1.2rem;
@@ -335,8 +385,8 @@
       }
 
       /* =============================
-       Loading 畫面
-============================= */
+             Loading 畫面
+      ============================= */
 
       .loading-screen {
         background: var(--usa-pink-light);
@@ -356,7 +406,11 @@
       </p>
     </div>
     <div class="status-bar">
-      <div class="location-pill disabled">📍 我在哪呢…？</div>
+      <div class="location_info">
+        <div class="location-pill disabled">📍 我在哪呢…？</div>
+        <div class="location-alert" style="display: none">❗</div>
+      </div>
+
       <!-- 下拉選單遮罩 -->
       <div id="cityDropdownBackdrop" class="city-dropdown-backdrop">
         <div class="city-dropdown">
@@ -392,6 +446,9 @@
           <div class="city-item">連江縣</div>
         </div>
       </div>
+
+      <!-- 自訂彈窗 -->
+      <div id="alert-modal" class="alert-modal hidden"></div>
 
       <div id="updateTime" class="update-pill">更新中...</div>
     </div>
@@ -467,7 +524,8 @@
         }
       });
 
-      let API_URL = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_36hr/${userCity}`;
+      let API_URL_WEATHER_36HR = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_36hr/${userCity}`;
+      let API_URL_WEATHER_HAZARDS = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_hazards/${userCity}`;
 
       function getWeatherIcon(weather) {
         if (!weather) return "🌤️";
@@ -522,43 +580,45 @@
         );
 
         document.getElementById("heroCard").innerHTML = `
-                        <div class="hero-card">
-                          <img src="usa-hero-figure.svg" class="hero-figure" />
-                            <div class="hero-period">${period}</div>
-                            <div class="hero-temp-container">
-                                <div class="hero-icon">${getWeatherIcon(
-                                  current.weather
-                                )}</div>
-                                <div class="hero-temp">${avgTemp}°</div>
-                            </div>
-                            <div class="hero-desc">${current.weather}</div>
+                              <div class="hero-card">
+                                <img src="usa-hero-figure.svg" class="hero-figure" />
+                                  <div class="hero-period">${period}</div>
+                                  <div class="hero-temp-container">
+                                      <div class="hero-icon">${getWeatherIcon(
+                                        current.weather
+                                      )}</div>
+                                      <div class="hero-temp">${avgTemp}°</div>
+                                  </div>
+                                  <div class="hero-desc">${
+                                    current.weather
+                                  }</div>
 
-                            <div class="advice-grid">
-                                <div class="advice-item">
-                                    <div class="advice-icon">${
-                                      advice.rainIcon
-                                    }</div>
-                                    <div class="advice-text">${
-                                      advice.rainText
-                                    }</div>
-                                    <div style="font-size:0.7rem; color:#999">降雨率 ${
-                                      current.rain
-                                    }</div>
-                                </div>
-                                <div class="advice-item">
-                                    <div class="advice-icon">${
-                                      advice.clothIcon
-                                    }</div>
-                                    <div class="advice-text">${
-                                      advice.clothText
-                                    }</div>
-                                    <div style="font-size:0.7rem; color:#999">最高溫 ${
-                                      current.maxTemp
-                                    }°</div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
+                                  <div class="advice-grid">
+                                      <div class="advice-item">
+                                          <div class="advice-icon">${
+                                            advice.rainIcon
+                                          }</div>
+                                          <div class="advice-text">${
+                                            advice.rainText
+                                          }</div>
+                                          <div style="font-size:0.7rem; color:#999">降雨率 ${
+                                            current.rain
+                                          }</div>
+                                      </div>
+                                      <div class="advice-item">
+                                          <div class="advice-icon">${
+                                            advice.clothIcon
+                                          }</div>
+                                          <div class="advice-text">${
+                                            advice.clothText
+                                          }</div>
+                                          <div style="font-size:0.7rem; color:#999">最高溫 ${
+                                            current.maxTemp
+                                          }°</div>
+                                      </div>
+                                  </div>
+                              </div>
+                          `;
 
         // 2. 渲染稍後預報 (包含明天判斷)
         const scrollContainer = document.getElementById("futureForecasts");
@@ -577,19 +637,19 @@
           }
 
           scrollContainer.innerHTML += `
-                            <div class="mini-card">
-                                <div class="mini-time">${p}</div>
-                                <div class="mini-icon">${getWeatherIcon(
-                                  f.weather
-                                )}</div>
-                                <div class="mini-temp">${f.minTemp}° - ${
+                                  <div class="mini-card">
+                                      <div class="mini-time">${p}</div>
+                                      <div class="mini-icon">${getWeatherIcon(
+                                        f.weather
+                                      )}</div>
+                                      <div class="mini-temp">${f.minTemp}° - ${
             f.maxTemp
           }°</div>
-                                <div style="font-size:0.8rem; color:#888; margin-top:5px;">💧${
-                                  f.rain
-                                }</div>
-                            </div>
-                        `;
+                                      <div style="font-size:0.8rem; color:#888; margin-top:5px;">💧${
+                                        f.rain
+                                      }</div>
+                                  </div>
+                              `;
         });
 
         // 3. 右上角顯示今日日期
@@ -612,7 +672,9 @@
           );
 
           // 2. 定義「抓取資料」的工作
-          const fetchPromise = fetch(API_URL).then((res) => res.json());
+          const fetchPromise = fetch(API_URL_WEATHER_36HR).then((res) =>
+            res.json()
+          );
 
           // 3. Promise.all 會等待「兩個都完成」才會往下走
           // result 陣列裡，第一個是 delay 的結果(沒用到)，第二個是 api 的 json 資料
@@ -633,14 +695,81 @@
         }
       }
 
+      function renderHazards(data) {
+        const hazards = data.hazards;
+        let alertlist = "";
+        let alertlistTotal = "";
+        if (hazards.length > 0) {
+          hazards.forEach((hazard) => {
+            alertlist += `
+                <p id="alert-type">*${hazard.phenomena}*</p>
+                <p id="alert-time">
+                  起：${hazard.startTime}<br />
+                  訖：${hazard.endTime}
+                </p>
+                `;
+          });
+          alertlistTotal = `<div id="alert-modal" class="alert-modal">
+        <div class="mini-card-alert">
+          <h3>警特報資訊</h3>
+          ${alertlist}
+        </div>
+      </div>`;
+        } else {
+          alertlistTotal += `<div id="alert-modal" class="alert-modal">
+        <div class="mini-card-alert">
+          <p>目前無警特報資訊。</p>
+          ${alertlist}
+        </div>
+      </div>`;
+        }
+        const alertModal = document.getElementById("alert-modal");
+        alertModal.innerHTML = alertlistTotal;
+      }
+
+      async function fetchHazards() {
+        try {
+          // 1. 定義「最低等待時間」：1500 毫秒 (1.5秒)
+          const delayPromise = new Promise((resolve) =>
+            setTimeout(resolve, 1500)
+          );
+
+          // 2. 定義「抓取資料」的工作
+          const fetchPromise = fetch(API_URL_WEATHER_HAZARDS).then((res) =>
+            res.json()
+          );
+
+          // 3. Promise.all 會等待「兩個都完成」才會往下走
+          // result 陣列裡，第一個是 delay 的結果(沒用到)，第二個是 api 的 json 資料
+          const [_, json] = await Promise.all([delayPromise, fetchPromise]);
+
+          if (json.success) {
+            if (json.data.hazards.length === 0) {
+              document.querySelector(".location-alert").style.display = "none";
+            } else {
+              renderHazards(json.data);
+              document.querySelector(".location-alert").style.display = "block";
+            }
+          }
+        } catch (e) {
+          console.error(e);
+          alert("警特報資料讀取失敗");
+          document.querySelector(".location-alert").style.display = "none";
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", fetchWeather);
+      document.addEventListener("DOMContentLoaded", fetchHazards);
 
       // === Location-pill 點擊 → 打開下拉選單 ===
       //const locationPill = document.querySelector(".location-pill");
       const cityBackdrop = document.getElementById("cityDropdownBackdrop");
+      const alertBtn = document.querySelector(".location-alert");
+      const modal = document.getElementById("alert-modal");
 
       pillEl.addEventListener("click", () => {
         cityBackdrop.style.display = "block";
+        modal.classList.add("hidden");
       });
 
       // 點擊背景關閉選單
@@ -663,9 +792,17 @@
 
           // 關閉選單
           cityBackdrop.style.display = "none";
-          API_URL = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_36hr/${userCity}`;
+          API_URL_WEATHER_36HR = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_36hr/${userCity}`;
           fetchWeather();
+          API_URL_WEATHER_HAZARDS = `https://swimmer-xyz-backend-cwaweather.zeabur.app/api/weather_hazards/${userCity}`;
+          fetchHazards();
         });
+      });
+
+      alertBtn.addEventListener("click", () => {
+        if (modal.classList.contains("hidden"))
+          modal.classList.remove("hidden");
+        else modal.classList.add("hidden");
       });
     </script>
   </body>
